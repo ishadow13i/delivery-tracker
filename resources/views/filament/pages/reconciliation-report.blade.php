@@ -4,20 +4,20 @@
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">شركة التوصيل</label>
                     <select wire:model.live="selectedCompanyId" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white">
-                        <option value="">All Companies</option>
+                        <option value="">جميع الشركات</option>
                         @foreach($this->companies as $company)
                             <option value="{{ $company->id }}">{{ $company->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">من</label>
                     <input type="date" wire:model.live="dateFrom" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">إلى</label>
                     <input type="date" wire:model.live="dateTo" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white">
                 </div>
             </div>
@@ -27,28 +27,28 @@
         @php $data = $this->reportData; @endphp
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-                <p class="text-sm text-gray-500">Total Orders</p>
+                <p class="text-sm text-gray-500">إجمالي الطلبات</p>
                 <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $data['total_orders'] }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-                <p class="text-sm text-gray-500">Delivered</p>
+                <p class="text-sm text-gray-500">تم التوصيل</p>
                 <p class="text-2xl font-bold text-green-600">{{ $data['delivered'] }}</p>
-                <p class="text-xs text-gray-400">{{ $data['delivery_rate'] }}% rate</p>
+                <p class="text-xs text-gray-400">نسبة التوصيل {{ $data['delivery_rate'] }}%</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-                <p class="text-sm text-gray-500">Rejected</p>
+                <p class="text-sm text-gray-500">مرفوضة</p>
                 <p class="text-2xl font-bold text-red-600">{{ $data['rejected'] }}</p>
-                <p class="text-xs text-gray-400">{{ $data['rejection_rate'] }}% rate</p>
+                <p class="text-xs text-gray-400">نسبة الرفض {{ $data['rejection_rate'] }}%</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-                <p class="text-sm text-gray-500">Returned</p>
+                <p class="text-sm text-gray-500">مُرتجعة</p>
                 <p class="text-2xl font-bold text-blue-600">{{ $data['returned'] }}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-red-300 dark:border-red-700 p-4 {{ $data['rejected_not_returned'] > 0 ? 'bg-red-50 dark:bg-red-900/20' : '' }}">
-                <p class="text-sm text-gray-500">Rejected NOT Returned</p>
+                <p class="text-sm text-gray-500">مرفوضة ولم تُرجع</p>
                 <p class="text-2xl font-bold text-red-600">{{ $data['rejected_not_returned'] }}</p>
                 @if($data['rejected_not_returned'] > 0)
-                    <p class="text-xs text-red-500 font-semibold">NEEDS ATTENTION</p>
+                    <p class="text-xs text-red-500 font-semibold">تتطلب انتباه</p>
                 @endif
             </div>
         </div>
@@ -56,18 +56,18 @@
         {{-- Company Breakdown --}}
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Company Breakdown</h3>
+                <h3 class="font-semibold text-gray-900 dark:text-white">تفصيل حسب شركة التوصيل</h3>
             </div>
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                        <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300">Company</th>
-                        <th class="px-4 py-3 text-center text-gray-600 dark:text-gray-300">Total</th>
-                        <th class="px-4 py-3 text-center text-gray-600 dark:text-gray-300">Delivered</th>
-                        <th class="px-4 py-3 text-center text-gray-600 dark:text-gray-300">Rejected</th>
-                        <th class="px-4 py-3 text-center text-gray-600 dark:text-gray-300">Returned</th>
-                        <th class="px-4 py-3 text-center text-gray-600 dark:text-gray-300">Missing</th>
-                        <th class="px-4 py-3 text-center text-gray-600 dark:text-gray-300">Delivery Rate</th>
+                        <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300">الشركة</th>
+                        <th class="px-4 py-3 text-center text-gray-600 dark:text-gray-300">الإجمالي</th>
+                        <th class="px-4 py-3 text-center text-gray-600 dark:text-gray-300">تم التوصيل</th>
+                        <th class="px-4 py-3 text-center text-gray-600 dark:text-gray-300">مرفوضة</th>
+                        <th class="px-4 py-3 text-center text-gray-600 dark:text-gray-300">مُرتجعة</th>
+                        <th class="px-4 py-3 text-center text-gray-600 dark:text-gray-300">مفقودة</th>
+                        <th class="px-4 py-3 text-center text-gray-600 dark:text-gray-300">نسبة التوصيل</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -99,18 +99,18 @@
             <div class="bg-red-50 dark:bg-red-900/20 rounded-xl shadow-sm border border-red-300 dark:border-red-700 overflow-hidden">
                 <div class="px-4 py-3 border-b border-red-200 dark:border-red-700">
                     <h3 class="font-semibold text-red-800 dark:text-red-200">
-                        Rejected But NOT Returned ({{ $this->missingOrders->count() }} orders)
+                        مرفوضة ولم تُرجع فعلياً ({{ $this->missingOrders->count() }} طلب)
                     </h3>
-                    <p class="text-sm text-red-600 dark:text-red-400">These orders were marked as rejected by the delivery company but have not been physically scanned back.</p>
+                    <p class="text-sm text-red-600 dark:text-red-400">هذه الطلبات تم وضع علامة مرفوضة عليها من شركة التوصيل لكنها لم تُمسح فعلياً عند الإرجاع.</p>
                 </div>
                 <table class="w-full text-sm">
                     <thead class="bg-red-100/50 dark:bg-red-900/30">
                         <tr>
-                            <th class="px-4 py-3 text-left text-red-700 dark:text-red-300">Tracking #</th>
-                            <th class="px-4 py-3 text-left text-red-700 dark:text-red-300">Company</th>
-                            <th class="px-4 py-3 text-left text-red-700 dark:text-red-300">Rejected Date</th>
-                            <th class="px-4 py-3 text-left text-red-700 dark:text-red-300">Days Pending</th>
-                            <th class="px-4 py-3 text-right text-red-700 dark:text-red-300">Action</th>
+                            <th class="px-4 py-3 text-left text-red-700 dark:text-red-300">رقم التتبع</th>
+                            <th class="px-4 py-3 text-left text-red-700 dark:text-red-300">الشركة</th>
+                            <th class="px-4 py-3 text-left text-red-700 dark:text-red-300">تاريخ الرفض</th>
+                            <th class="px-4 py-3 text-left text-red-700 dark:text-red-300">أيام معلقة</th>
+                            <th class="px-4 py-3 text-right text-red-700 dark:text-red-300">إجراء</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-red-100 dark:divide-red-800">
@@ -129,17 +129,17 @@
                                     @if($order->rejected_at)
                                         @php $days = $order->rejected_at->diffInDays(now()); @endphp
                                         <span class="{{ $days > 7 ? 'text-red-600 font-bold' : 'text-orange-600' }}">
-                                            {{ $days }} days
+                                            {{ $days }} يوم
                                         </span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     <button
                                         wire:click="markAsMissing({{ $order->id }})"
-                                        wire:confirm="Mark {{ $order->tracking_number }} as MISSING? This flags it as potentially lost/stolen."
+                                        wire:confirm="وضع علامة مفقود على {{ $order->tracking_number }}؟ سيتم تصنيفه كمحتمل ضائع/مسروق."
                                         class="px-2 py-1 rounded bg-red-200 text-red-800 hover:bg-red-300 text-xs font-medium"
                                     >
-                                        Mark Missing
+                                        علامة مفقود
                                     </button>
                                 </td>
                             </tr>

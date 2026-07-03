@@ -8,7 +8,7 @@ use Filament\Widgets\ChartWidget;
 
 class CompanyPerformanceChart extends ChartWidget
 {
-    protected static ?string $heading = 'Company Performance';
+    protected static ?string $heading = 'أداء شركات التوصيل';
     protected static ?int $sort = 3;
 
     protected function getData(): array
@@ -23,12 +23,12 @@ class CompanyPerformanceChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Delivered',
+                    'label' => 'تم التوصيل',
                     'data' => $companies->pluck('delivered_count'),
                     'backgroundColor' => '#34D399',
                 ],
                 [
-                    'label' => 'Rejected/Returned/Missing',
+                    'label' => 'مرفوضة/مُرتجعة/مفقودة',
                     'data' => $companies->pluck('rejected_count'),
                     'backgroundColor' => '#EF4444',
                 ],

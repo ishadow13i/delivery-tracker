@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('tracking_number')->unique();
             $table->foreignId('company_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('batch_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('status')->default('created');
+            $table->string('status')->default('dispatched');
             $table->timestamp('dispatched_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
             $table->timestamp('rejected_at')->nullable();

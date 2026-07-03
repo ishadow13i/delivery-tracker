@@ -34,7 +34,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('Delivery Tracker')
+            ->brandName('نظام تتبع الشحنات')
             ->colors([
                 'primary' => Color::Blue,
                 'danger' => Color::Red,

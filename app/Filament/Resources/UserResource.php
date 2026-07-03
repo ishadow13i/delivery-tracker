@@ -14,26 +14,33 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
     protected static ?string $navigationIcon = 'heroicon-o-users';
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationGroup = 'الإعدادات';
+    protected static ?string $navigationLabel = 'المستخدمون';
+    protected static ?string $modelLabel = 'مستخدم';
+    protected static ?string $pluralModelLabel = 'المستخدمون';
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
         return $form->schema([
             Forms\Components\TextInput::make('name')
+                ->label('الاسم')
                 ->required()
                 ->maxLength(255),
             Forms\Components\TextInput::make('email')
+                ->label('البريد الإلكتروني')
                 ->email()
                 ->required()
                 ->unique(ignoreRecord: true)
                 ->maxLength(255),
             Forms\Components\TextInput::make('password')
+                ->label('كلمة المرور')
                 ->password()
                 ->required(fn (string $operation): bool => $operation === 'create')
                 ->dehydrated(fn (?string $state) => filled($state))
                 ->maxLength(255),
             Forms\Components\Select::make('roles')
+                ->label('الصلاحية')
                 ->relationship('roles', 'name')
                 ->preload()
                 ->required(),
@@ -44,18 +51,18 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('email')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('roles.name')->badge(),
-                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('name')->label('الاسم')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('email')->label('البريد الإلكتروني')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('roles.name')->label('الصلاحية')->badge(),
+                Tables\Columns\TextColumn::make('created_at')->label('تاريخ الإنشاء')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->label('تعديل'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()->label('حذف المحدد'),
                 ]),
             ]);
     }

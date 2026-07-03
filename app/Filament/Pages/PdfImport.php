@@ -7,10 +7,8 @@ use App\Models\Batch;
 use App\Models\Company;
 use App\Models\Order;
 use App\Services\PdfExtractor;
-use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
@@ -25,8 +23,9 @@ class PdfImport extends Page implements HasForms
     }
 
     protected static ?string $navigationIcon = 'heroicon-o-document-arrow-up';
-    protected static ?string $navigationGroup = 'Orders';
-    protected static ?string $navigationLabel = 'PDF Import';
+    protected static ?string $navigationGroup = 'الطلبات';
+    protected static ?string $navigationLabel = 'استيراد PDF';
+    protected static ?string $title = 'استيراد PDF';
     protected static ?int $navigationSort = 2;
     protected static string $view = 'filament.pages.pdf-import';
 
@@ -36,6 +35,9 @@ class PdfImport extends Page implements HasForms
     public ?int $existingBatchId = null;
     public bool $useExistingBatch = false;
     public array $extractedNumbers = [];
+    public array $newNumbers = [];
+    public array $updatableNumbers = [];
+    public array $duplicateNumbers = [];
     public bool $showPreview = false;
 
     public function getCompaniesProperty(): \Illuminate\Support\Collection
@@ -59,18 +61,18 @@ class PdfImport extends Page implements HasForms
     public function selectCompany(int $companyId): void
     {
         $this->selectedCompanyId = $companyId;
-        $this->reset(['pdfFile', 'batchName', 'existingBatchId', 'useExistingBatch', 'extractedNumbers', 'showPreview']);
+        $this->reset(['pdfFile', 'batchName', 'existingBatchId', 'useExistingBatch', 'extractedNumbers', 'newNumbers', 'updatableNumbers', 'duplicateNumbers', 'showPreview']);
     }
 
     public function backToCompanySelection(): void
     {
-        $this->reset(['selectedCompanyId', 'pdfFile', 'batchName', 'existingBatchId', 'useExistingBatch', 'extractedNumbers', 'showPreview']);
+        $this->reset(['selectedCompanyId', 'pdfFile', 'batchName', 'existingBatchId', 'useExistingBatch', 'extractedNumbers', 'newNumbers', 'updatableNumbers', 'duplicateNumbers', 'showPreview']);
     }
 
     public function extractFromPdf(): void
     {
         if (!$this->pdfFile) {
-            Notification::make()->title('Please upload a PDF file')->danger()->send();
+            Notification::make()->title('يرجى رفع ملف PDF')->danger()->send();
             return;
         }
 
@@ -81,24 +83,43 @@ class PdfImport extends Page implements HasForms
 
             if (empty($numbers)) {
                 Notification::make()
-                    ->title('No tracking numbers found in the PDF')
-                    ->body('Make sure the PDF is text-based (not scanned image). Try opening it and selecting text with your mouse.')
+                    ->title('لم يتم العثور على أرقام تتبع في الملف')
+                    ->body('تأكد من أن الملف نصي (وليس صورة ممسوحة). جرّب فتحه وتحديد النص بالفأرة.')
                     ->danger()
                     ->persistent()
                     ->send();
                 return;
             }
 
+            // Categorize each number
+            $existingOrders = Order::whereIn('tracking_number', $numbers)->get()->keyBy('tracking_number');
+
+            $new = [];
+            $duplicate = [];
+
+            foreach ($numbers as $tn) {
+                $existing = $existingOrders->get($tn);
+
+                if (!$existing) {
+                    $new[] = $tn;
+                } else {
+                    $duplicate[] = ['tracking' => $tn, 'currentStatus' => $existing->status->label()];
+                }
+            }
+
             $this->extractedNumbers = $numbers;
+            $this->newNumbers = $new;
+            $this->updatableNumbers = [];
+            $this->duplicateNumbers = $duplicate;
             $this->showPreview = true;
 
             Notification::make()
-                ->title("Found " . count($numbers) . " tracking numbers")
+                ->title("تم العثور على " . count($numbers) . " رقم تتبع")
                 ->success()
                 ->send();
         } catch (\Throwable $e) {
             Notification::make()
-                ->title('Failed to parse PDF')
+                ->title('فشل قراءة ملف PDF')
                 ->body($e->getMessage())
                 ->danger()
                 ->persistent()
@@ -109,6 +130,16 @@ class PdfImport extends Page implements HasForms
     public function confirmImport(): void
     {
         if (empty($this->extractedNumbers) || !$this->selectedCompanyId) {
+            return;
+        }
+
+        // If nothing to create or update, abort without creating an empty batch
+        if (empty($this->newNumbers) && empty($this->updatableNumbers)) {
+            Notification::make()
+                ->title('لا يوجد ما نستورده — كل الأرقام موجودة بالفعل')
+                ->warning()
+                ->send();
+            $this->cancelPreview();
             return;
         }
 
@@ -125,35 +156,37 @@ class PdfImport extends Page implements HasForms
         }
 
         $created = 0;
-        $skipped = 0;
         $updated = 0;
 
-        foreach ($this->extractedNumbers as $tracking) {
-            $existing = Order::where('tracking_number', $tracking)->first();
+        foreach ($this->newNumbers as $tracking) {
+            Order::create([
+                'tracking_number' => $tracking,
+                'company_id' => $this->selectedCompanyId,
+                'batch_id' => $batch->id,
+                'status' => OrderStatus::Dispatched,
+                'dispatched_at' => now(),
+            ]);
+            $created++;
+        }
 
-            if (!$existing) {
-                Order::create([
-                    'tracking_number' => $tracking,
+        foreach ($this->updatableNumbers as $item) {
+            $order = Order::where('tracking_number', $item['tracking'])->first();
+            if ($order) {
+                $order->update([
                     'company_id' => $this->selectedCompanyId,
                     'batch_id' => $batch->id,
-                    'status' => OrderStatus::Assigned,
-                ]);
-                $created++;
-            } elseif ($existing->status === OrderStatus::Created || $existing->status === OrderStatus::Assigned) {
-                $existing->update([
-                    'company_id' => $this->selectedCompanyId,
-                    'batch_id' => $batch->id,
-                    'status' => OrderStatus::Assigned,
+                    'status' => OrderStatus::Dispatched,
+                    'dispatched_at' => now(),
                 ]);
                 $updated++;
-            } else {
-                $skipped++;
             }
         }
 
-        $msg = "Batch #{$batch->id}: {$created} created";
-        if ($updated > 0) $msg .= ", {$updated} updated";
-        if ($skipped > 0) $msg .= ", {$skipped} skipped (already dispatched/delivered)";
+        $skipped = count($this->duplicateNumbers);
+
+        $msg = "دُفعة #{$batch->id}: تم إنشاء {$created}";
+        if ($updated > 0) $msg .= "، تم تحديث {$updated}";
+        if ($skipped > 0) $msg .= "، تم تجاهل {$skipped}";
 
         Notification::make()
             ->title($msg)
@@ -162,11 +195,11 @@ class PdfImport extends Page implements HasForms
             ->send();
 
         // Reset for next import
-        $this->reset(['pdfFile', 'batchName', 'existingBatchId', 'useExistingBatch', 'extractedNumbers', 'showPreview']);
+        $this->reset(['pdfFile', 'batchName', 'existingBatchId', 'useExistingBatch', 'extractedNumbers', 'newNumbers', 'updatableNumbers', 'duplicateNumbers', 'showPreview']);
     }
 
     public function cancelPreview(): void
     {
-        $this->reset(['extractedNumbers', 'showPreview']);
+        $this->reset(['extractedNumbers', 'newNumbers', 'updatableNumbers', 'duplicateNumbers', 'showPreview']);
     }
 }

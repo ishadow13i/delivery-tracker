@@ -4,8 +4,6 @@ namespace App\Enums;
 
 enum OrderStatus: string
 {
-    case Created = 'created';
-    case Assigned = 'assigned';
     case Dispatched = 'dispatched';
     case Delivered = 'delivered';
     case Delayed = 'delayed';
@@ -16,22 +14,18 @@ enum OrderStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Created => 'Created',
-            self::Assigned => 'Assigned',
-            self::Dispatched => 'Dispatched',
-            self::Delivered => 'Delivered',
-            self::Delayed => 'Delayed',
-            self::Rejected => 'Rejected',
-            self::Returned => 'Returned',
-            self::Missing => 'Missing',
+            self::Dispatched => 'مُرسل',
+            self::Delivered => 'تم التوصيل',
+            self::Delayed => 'مؤجل',
+            self::Rejected => 'مرفوض',
+            self::Returned => 'مُرتجع',
+            self::Missing => 'مفقود',
         };
     }
 
     public function color(): string
     {
         return match ($this) {
-            self::Created => 'gray',
-            self::Assigned => 'info',
             self::Dispatched => 'warning',
             self::Delivered => 'success',
             self::Delayed => 'warning',
@@ -44,8 +38,6 @@ enum OrderStatus: string
     public function icon(): string
     {
         return match ($this) {
-            self::Created => 'heroicon-o-document-plus',
-            self::Assigned => 'heroicon-o-truck',
             self::Dispatched => 'heroicon-o-paper-airplane',
             self::Delivered => 'heroicon-o-check-circle',
             self::Delayed => 'heroicon-o-clock',

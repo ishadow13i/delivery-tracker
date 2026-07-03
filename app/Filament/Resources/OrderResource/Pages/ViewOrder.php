@@ -15,42 +15,52 @@ class ViewOrder extends ViewRecord
     public function infolist(Infolist $infolist): Infolist
     {
         return $infolist->schema([
-            Infolists\Components\Section::make('Order Details')->schema([
-                Infolists\Components\TextEntry::make('tracking_number')->copyable(),
-                Infolists\Components\TextEntry::make('company.name'),
-                Infolists\Components\TextEntry::make('batch.name'),
+            Infolists\Components\Section::make('تفاصيل الطلب')->schema([
+                Infolists\Components\TextEntry::make('tracking_number')->label('رقم التتبع')->copyable(),
+                Infolists\Components\TextEntry::make('company.name')->label('شركة التوصيل'),
+                Infolists\Components\TextEntry::make('batch.name')->label('الدُفعة'),
                 Infolists\Components\TextEntry::make('status')
+                    ->label('الحالة')
                     ->badge()
+                    ->formatStateUsing(fn (OrderStatus $state): string => $state->label())
                     ->color(fn (OrderStatus $state): string => $state->color()),
-                Infolists\Components\TextEntry::make('notes'),
+                Infolists\Components\TextEntry::make('notes')->label('الملاحظات'),
             ])->columns(2),
 
-            Infolists\Components\Section::make('Timeline')->schema([
-                Infolists\Components\TextEntry::make('created_at')->dateTime(),
-                Infolists\Components\TextEntry::make('dispatched_at')->dateTime(),
-                Infolists\Components\TextEntry::make('delivered_at')->dateTime(),
-                Infolists\Components\TextEntry::make('rejected_at')->dateTime(),
-                Infolists\Components\TextEntry::make('returned_at')->dateTime(),
+            Infolists\Components\Section::make('الجدول الزمني')->schema([
+                Infolists\Components\TextEntry::make('created_at')->label('تاريخ الإنشاء')->dateTime(),
+                Infolists\Components\TextEntry::make('dispatched_at')->label('تاريخ الإرسال')->dateTime(),
+                Infolists\Components\TextEntry::make('delivered_at')->label('تاريخ التوصيل')->dateTime(),
+                Infolists\Components\TextEntry::make('rejected_at')->label('تاريخ الرفض')->dateTime(),
+                Infolists\Components\TextEntry::make('returned_at')->label('تاريخ الإرجاع')->dateTime(),
             ])->columns(3),
 
-            Infolists\Components\Section::make('Scan History')->schema([
+            Infolists\Components\Section::make('سجل المسح الضوئي')->schema([
                 Infolists\Components\RepeatableEntry::make('scanLogs')
+                    ->label('')
                     ->schema([
-                        Infolists\Components\TextEntry::make('type')->badge(),
-                        Infolists\Components\TextEntry::make('barcode_raw')->label('Barcode'),
-                        Infolists\Components\TextEntry::make('user.name')->label('Scanned By'),
-                        Infolists\Components\TextEntry::make('scanned_at')->dateTime(),
+                        Infolists\Components\TextEntry::make('type')->label('النوع')->badge(),
+                        Infolists\Components\TextEntry::make('barcode_raw')->label('الباركود'),
+                        Infolists\Components\TextEntry::make('user.name')->label('بواسطة'),
+                        Infolists\Components\TextEntry::make('scanned_at')->label('تاريخ المسح')->dateTime(),
                     ])->columns(4),
             ]),
 
-            Infolists\Components\Section::make('Status History')->schema([
+            Infolists\Components\Section::make('سجل تغيير الحالة')->schema([
                 Infolists\Components\RepeatableEntry::make('statusLogs')
+                    ->label('')
                     ->schema([
-                        Infolists\Components\TextEntry::make('old_status')->badge(),
-                        Infolists\Components\TextEntry::make('new_status')->badge(),
-                        Infolists\Components\TextEntry::make('changedBy.name')->label('Changed By'),
-                        Infolists\Components\TextEntry::make('created_at')->dateTime()->label('Date'),
-                        Infolists\Components\TextEntry::make('notes'),
+                        Infolists\Components\TextEntry::make('old_status')
+                            ->label('الحالة السابقة')
+                            ->badge()
+                            ->formatStateUsing(fn ($state): string => $state instanceof OrderStatus ? $state->label() : (string) $state),
+                        Infolists\Components\TextEntry::make('new_status')
+                            ->label('الحالة الجديدة')
+                            ->badge()
+                            ->formatStateUsing(fn ($state): string => $state instanceof OrderStatus ? $state->label() : (string) $state),
+                        Infolists\Components\TextEntry::make('changedBy.name')->label('بواسطة'),
+                        Infolists\Components\TextEntry::make('created_at')->dateTime()->label('التاريخ'),
+                        Infolists\Components\TextEntry::make('notes')->label('ملاحظات'),
                     ])->columns(5),
             ]),
         ]);

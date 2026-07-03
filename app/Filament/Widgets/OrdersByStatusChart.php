@@ -8,7 +8,7 @@ use Filament\Widgets\ChartWidget;
 
 class OrdersByStatusChart extends ChartWidget
 {
-    protected static ?string $heading = 'Orders by Status';
+    protected static ?string $heading = 'الطلبات حسب الحالة';
     protected static ?int $sort = 2;
 
     protected function getData(): array
@@ -18,8 +18,6 @@ class OrdersByStatusChart extends ChartWidget
                 'label' => $status->label(),
                 'count' => Order::where('status', $status)->count(),
                 'color' => match ($status) {
-                    OrderStatus::Created => '#9CA3AF',
-                    OrderStatus::Assigned => '#60A5FA',
                     OrderStatus::Dispatched => '#FBBF24',
                     OrderStatus::Delivered => '#34D399',
                     OrderStatus::Delayed => '#F59E0B',

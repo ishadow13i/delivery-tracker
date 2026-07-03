@@ -17,8 +17,9 @@ class StatusUpdate extends Page
     }
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-path';
-    protected static ?string $navigationGroup = 'Orders';
-    protected static ?string $navigationLabel = 'Status Update';
+    protected static ?string $navigationGroup = 'الطلبات';
+    protected static ?string $navigationLabel = 'تحديث الحالة';
+    protected static ?string $title = 'تحديث الحالة';
     protected static ?int $navigationSort = 3;
     protected static string $view = 'filament.pages.status-update';
 
@@ -97,7 +98,7 @@ class StatusUpdate extends Page
         }
 
         Notification::make()
-            ->title("Updated {$count} orders to " . OrderStatus::from($newStatus)->label())
+            ->title("تم تحديث {$count} طلب إلى " . OrderStatus::from($newStatus)->label())
             ->success()
             ->send();
     }

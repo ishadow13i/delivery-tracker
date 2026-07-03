@@ -16,22 +16,22 @@ class StatsOverview extends BaseWidget
         $today = now()->toDateString();
 
         return [
-            Stat::make('Total Orders', Order::count())
-                ->description('All time')
+            Stat::make('إجمالي الطلبات', Order::count())
+                ->description('كل الطلبات')
                 ->icon('heroicon-o-clipboard-document-list'),
 
-            Stat::make('Dispatched Today', Order::whereDate('dispatched_at', $today)->count())
-                ->description('Scanned out today')
+            Stat::make('المرسلة اليوم', Order::whereDate('dispatched_at', $today)->count())
+                ->description('التي تم إرسالها اليوم')
                 ->icon('heroicon-o-paper-airplane')
                 ->color('warning'),
 
-            Stat::make('Delivered', Order::where('status', OrderStatus::Delivered)->count())
-                ->description('Successfully delivered')
+            Stat::make('تم التوصيل', Order::where('status', OrderStatus::Delivered)->count())
+                ->description('تم توصيلها بنجاح')
                 ->icon('heroicon-o-check-circle')
                 ->color('success'),
 
-            Stat::make('Rejected (Not Returned)', Order::where('status', OrderStatus::Rejected)->whereNull('returned_at')->count())
-                ->description('Needs attention')
+            Stat::make('مرفوضة ولم تُرجع', Order::where('status', OrderStatus::Rejected)->whereNull('returned_at')->count())
+                ->description('بحاجة إلى انتباه')
                 ->icon('heroicon-o-exclamation-triangle')
                 ->color('danger'),
         ];

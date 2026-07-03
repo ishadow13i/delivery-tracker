@@ -12,16 +12,17 @@ class PdfExtractor
         $pdf = $parser->parseFile($pdfPath);
         $text = $pdf->getText();
 
-        $trackingNumbers = [];
+        // Find all sequences of exactly 12 digits (Datum PDF tracking format)
+        // Word boundaries prevent matching 12 digits inside longer number sequences
+        preg_match_all('/(?<!\d)(\d{12})(?!\d)/', $text, $matches);
 
-        // Pattern 1: "رقم الطلب : XXXXXXXXXXXX" (10-15 digits)
-        if (preg_match_all('/رقم الطلب\s*:?\s*(\d{10,15})/u', $text, $matches)) {
-            $trackingNumbers = array_merge($trackingNumbers, $matches[1]);
-        }
+        $numbers = $matches[1] ?? [];
 
-        // Deduplicate (numbers appear twice per page - once as text, once under QR)
-        $trackingNumbers = array_values(array_unique($trackingNumbers));
+        // Exclude anything that looks like an Iraqi phone number (starts with 07)
+        // Phones are 11 digits so shouldn't match, but safety filter regardless
+        $numbers = array_filter($numbers, fn ($n) => !str_starts_with($n, '07'));
 
-        return $trackingNumbers;
+        // Deduplicate - tracking numbers appear twice per page (as text + under QR)
+        return array_values(array_unique($numbers));
     }
 }

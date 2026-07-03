@@ -18,8 +18,9 @@ class DispatchScanStation extends Page
     }
 
     protected static ?string $navigationIcon = 'heroicon-o-paper-airplane';
-    protected static ?string $navigationGroup = 'Scanning';
-    protected static ?string $navigationLabel = 'Dispatch Scan';
+    protected static ?string $navigationGroup = 'المسح الضوئي';
+    protected static ?string $navigationLabel = 'مسح الإرسال';
+    protected static ?string $title = 'مسح الإرسال';
     protected static ?int $navigationSort = 1;
     protected static string $view = 'filament.pages.dispatch-scan-station';
 
@@ -57,26 +58,26 @@ class DispatchScanStation extends Page
         $existingOrder = Order::where('tracking_number', $barcode)->first();
 
         if ($existingOrder) {
-            if ($existingOrder->batch_id === $this->selectedBatchId && $existingOrder->status !== OrderStatus::Assigned && $existingOrder->status !== OrderStatus::Created) {
+            if ($existingOrder->batch_id === $this->selectedBatchId) {
                 array_unshift($this->scanResults, [
                     'barcode' => $barcode,
                     'success' => false,
-                    'message' => "Already dispatched in this batch",
+                    'message' => "تم إرساله بالفعل في هذه الدُفعة",
                     'time' => now()->format('H:i:s'),
                 ]);
-                Notification::make()->title('Already dispatched')->warning()->send();
+                Notification::make()->title('تم إرساله بالفعل')->warning()->send();
                 $this->dispatch('scan-error');
                 return;
             }
 
-            if ($existingOrder->batch_id !== $this->selectedBatchId && $existingOrder->batch_id !== null) {
+            if ($existingOrder->batch_id !== null) {
                 array_unshift($this->scanResults, [
                     'barcode' => $barcode,
                     'success' => false,
-                    'message' => "Already exists in another batch!",
+                    'message' => "موجود بالفعل في دُفعة أخرى!",
                     'time' => now()->format('H:i:s'),
                 ]);
-                Notification::make()->title('Exists in another batch')->danger()->send();
+                Notification::make()->title('موجود في دُفعة أخرى')->danger()->send();
                 $this->dispatch('scan-error');
                 return;
             }
@@ -116,11 +117,11 @@ class DispatchScanStation extends Page
         array_unshift($this->scanResults, [
             'barcode' => $barcode,
             'success' => true,
-            'message' => 'Dispatched',
+            'message' => 'تم الإرسال',
             'time' => now()->format('H:i:s'),
         ]);
 
-        Notification::make()->title("Dispatched: {$barcode}")->success()->send();
+        Notification::make()->title("تم الإرسال: {$barcode}")->success()->send();
         $this->dispatch('scan-success');
     }
 }

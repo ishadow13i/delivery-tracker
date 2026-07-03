@@ -15,8 +15,9 @@ class ReconciliationReport extends Page
     }
 
     protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';
-    protected static ?string $navigationGroup = 'Reports';
-    protected static ?string $navigationLabel = 'Reconciliation';
+    protected static ?string $navigationGroup = 'التقارير';
+    protected static ?string $navigationLabel = 'التسوية والمطابقة';
+    protected static ?string $title = 'التسوية والمطابقة';
     protected static ?int $navigationSort = 1;
     protected static string $view = 'filament.pages.reconciliation-report';
 
@@ -43,8 +44,7 @@ class ReconciliationReport extends Page
             ->when($this->dateTo, fn ($q) => $q->whereDate('created_at', '<=', $this->dateTo));
 
         $totalOrders = (clone $query)->count();
-        $dispatched = (clone $query)->where('status', '!=', OrderStatus::Created->value)
-            ->where('status', '!=', OrderStatus::Assigned->value)->count();
+        $dispatched = $totalOrders;
         $delivered = (clone $query)->where('status', OrderStatus::Delivered->value)->count();
         $rejected = (clone $query)->where('status', OrderStatus::Rejected->value)->count();
         $returned = (clone $query)->where('status', OrderStatus::Returned->value)->count();

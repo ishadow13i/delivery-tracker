@@ -1,7 +1,7 @@
 <x-filament-panels::page>
     @if(!$selectedBatchId)
         <div class="space-y-4">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Select a Batch to Scan</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">اختر دُفعة للمسح</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($this->batches as $batch)
@@ -12,14 +12,14 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="font-semibold text-gray-900 dark:text-white">
-                                    {{ $batch->name ?: "Batch #{$batch->id}" }}
+                                    {{ $batch->name ?: "دُفعة #{$batch->id}" }}
                                 </p>
                                 <p class="text-sm text-gray-500">{{ $batch->company->name }}</p>
                                 <p class="text-xs text-gray-400 mt-1">{{ $batch->created_at->format('M d, Y') }}</p>
                             </div>
                             <div class="text-right">
                                 <span class="text-2xl font-bold text-primary-600">{{ $batch->orders_count }}</span>
-                                <p class="text-xs text-gray-400">orders</p>
+                                <p class="text-xs text-gray-400">طلب</p>
                             </div>
                         </div>
                     </button>
@@ -28,7 +28,7 @@
 
             @if($this->batches->isEmpty())
                 <div class="text-center py-8 text-gray-500">
-                    No batches found. Create a batch first from the Batches page.
+                    لا توجد دُفعات. أنشئ دُفعة من صفحة الدُفعات أولاً.
                 </div>
             @endif
         </div>
@@ -38,37 +38,42 @@
             <div class="flex items-center justify-between">
                 <div>
                     <button wire:click="$set('selectedBatchId', null)" class="text-sm text-primary-600 hover:underline mb-2 inline-block">
-                        &larr; Back to batch list
+                        &larr; العودة إلى قائمة الدُفعات
                     </button>
                     @php $batch = \App\Models\Batch::with('company')->find($selectedBatchId); @endphp
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        {{ $batch?->name ?: "Batch #{$selectedBatchId}" }} — {{ $batch?->company?->name }}
+                        {{ $batch?->name ?: "دُفعة #{$selectedBatchId}" }} — {{ $batch?->company?->name }}
                     </h2>
                 </div>
                 <div class="text-right">
                     <span class="text-3xl font-bold text-primary-600">{{ $scannedCount }}</span>
-                    <p class="text-sm text-gray-400">orders scanned</p>
+                    <p class="text-sm text-gray-400">طلب تم مسحه</p>
                 </div>
             </div>
 
             {{-- Scan input --}}
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border-2 border-primary-500 p-6">
-                <form wire:submit="scan">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Scan Barcode — orders are created automatically
-                    </label>
-                    <input
-                        type="text"
-                        wire:model="barcodeInput"
-                        autofocus
-                        autocomplete="off"
-                        class="w-full text-2xl p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-900 dark:text-white"
-                        placeholder="Waiting for barcode scan..."
-                        x-init="$el.focus()"
-                        @scan-success.window="$el.focus()"
-                        @scan-error.window="$el.focus()"
-                    >
-                </form>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    امسح الباركود — يتم إنشاء الطلبات تلقائياً
+                </label>
+                <input
+                    type="text"
+                    autofocus
+                    autocomplete="off"
+                    class="w-full text-2xl p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-900 dark:text-white"
+                    placeholder="بانتظار مسح الباركود..."
+                    x-data="{}"
+                    x-init="$el.focus()"
+                    x-on:keydown.enter.prevent="
+                        if ($el.value.trim() !== '') {
+                            $wire.barcodeInput = $el.value;
+                            $wire.scan();
+                            $el.value = '';
+                        }
+                    "
+                    @scan-success.window="$el.focus()"
+                    @scan-error.window="$el.focus()"
+                >
             </div>
 
             {{-- Scan results feed --}}
@@ -93,11 +98,5 @@
                 @endforeach
             </div>
         </div>
-
-        <script>
-            document.addEventListener('scan-success', () => {
-                try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ==').play(); } catch(e) {}
-            });
-        </script>
     @endif
 </x-filament-panels::page>

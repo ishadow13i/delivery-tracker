@@ -18,8 +18,9 @@ class ReturnScanStation extends Page
     }
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-uturn-left';
-    protected static ?string $navigationGroup = 'Scanning';
-    protected static ?string $navigationLabel = 'Return Scan';
+    protected static ?string $navigationGroup = 'المسح الضوئي';
+    protected static ?string $navigationLabel = 'مسح الإرجاع';
+    protected static ?string $title = 'مسح الإرجاع';
     protected static ?int $navigationSort = 2;
     protected static string $view = 'filament.pages.return-scan-station';
 
@@ -67,12 +68,12 @@ class ReturnScanStation extends Page
             array_unshift($this->scanResults, [
                 'barcode' => $barcode,
                 'success' => false,
-                'message' => 'Order not found in system!',
+                'message' => 'الطلب غير موجود في النظام!',
                 'time' => now()->format('H:i:s'),
                 'company' => null,
             ]);
 
-            Notification::make()->title("Not found: {$barcode}")->danger()->send();
+            Notification::make()->title("غير موجود: {$barcode}")->danger()->send();
             $this->dispatch('scan-error');
             return;
         }
@@ -81,12 +82,12 @@ class ReturnScanStation extends Page
             array_unshift($this->scanResults, [
                 'barcode' => $barcode,
                 'success' => false,
-                'message' => 'Already marked as returned!',
+                'message' => 'تم وضع علامة مُرتجع بالفعل!',
                 'time' => now()->format('H:i:s'),
                 'company' => $order->company?->name,
             ]);
 
-            Notification::make()->title('Already returned')->warning()->send();
+            Notification::make()->title('تم إرجاعه بالفعل')->warning()->send();
             $this->dispatch('scan-error');
             return;
         }
@@ -119,12 +120,12 @@ class ReturnScanStation extends Page
         array_unshift($this->scanResults, [
             'barcode' => $barcode,
             'success' => true,
-            'message' => "Returned — Company: {$order->company?->name} — #{$order->tracking_number}",
+            'message' => "تم الإرجاع — شركة: {$order->company?->name} — #{$order->tracking_number}",
             'time' => now()->format('H:i:s'),
             'company' => $order->company?->name,
         ]);
 
-        Notification::make()->title("Returned: {$order->tracking_number}")->success()->send();
+        Notification::make()->title("تم الإرجاع: {$order->tracking_number}")->success()->send();
         $this->dispatch('scan-success');
     }
 
@@ -134,7 +135,7 @@ class ReturnScanStation extends Page
         $note = trim($this->noteText);
 
         if (empty($tracking) || empty($note)) {
-            Notification::make()->title('Please enter both tracking number and note')->danger()->send();
+            Notification::make()->title('يرجى إدخال رقم التتبع والملاحظة')->danger()->send();
             return;
         }
 
@@ -167,6 +168,6 @@ class ReturnScanStation extends Page
         $this->noteTrackingNumber = '';
         $this->noteText = '';
 
-        Notification::make()->title("Note saved for {$tracking}")->success()->send();
+        Notification::make()->title("تم حفظ الملاحظة للطلب {$tracking}")->success()->send();
     }
 }
