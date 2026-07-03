@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Policies\CompanyPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -18,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Schema::defaultStringLength(191);
+
         Gate::policy(Company::class, CompanyPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
     }
