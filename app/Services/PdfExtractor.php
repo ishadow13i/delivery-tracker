@@ -17,8 +17,10 @@ class PdfExtractor
 
         $numbers = $matches[1] ?? [];
 
-        // Exclude Iraqi phone numbers (start with 07)
-        $numbers = array_filter($numbers, fn ($n) => !str_starts_with($n, '07'));
+        // Exclude Iraqi phone numbers:
+        //   - Local format: 11 digits starting with 07
+        //   - International format: 13 digits starting with 964
+        $numbers = array_filter($numbers, fn ($n) => !str_starts_with($n, '07') && !str_starts_with($n, '964'));
 
         // Deduplicate - tracking numbers appear twice per page
         return array_values(array_unique($numbers));
