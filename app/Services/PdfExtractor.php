@@ -12,8 +12,8 @@ class PdfExtractor
         // Try Ghostscript first (much faster) — falls back to pure PHP parser if unavailable
         $text = $this->extractTextViaGhostscript($pdfPath) ?? $this->extractTextViaPdfParser($pdfPath);
 
-        // Find all sequences of exactly 12 digits (Datum PDF tracking format)
-        preg_match_all('/(?<!\d)(\d{12})(?!\d)/', $text, $matches);
+        // Find all sequences of 12 or more digits (supports various delivery company formats)
+        preg_match_all('/(?<!\d)(\d{12,})(?!\d)/', $text, $matches);
 
         $numbers = $matches[1] ?? [];
 
