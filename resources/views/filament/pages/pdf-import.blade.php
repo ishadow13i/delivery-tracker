@@ -46,7 +46,26 @@
                 </div>
             </div>
 
-            @if(!$showPreview)
+            @if($processing)
+                {{-- Processing state with polling --}}
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border-2 border-primary-500 p-8 text-center space-y-4"
+                    wire:poll.2s="pollExtraction"
+                >
+                    <div class="flex justify-center">
+                        <svg class="animate-spin h-12 w-12 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                        {{ $processingMessage ?: 'جاري المعالجة...' }}
+                    </h3>
+                    <p class="text-sm text-gray-500">
+                        قد يستغرق هذا حتى دقيقتين للملفات الكبيرة. لا تغلق الصفحة.
+                    </p>
+                </div>
+            @elseif(!$showPreview)
                 {{-- Step 1: Upload PDF --}}
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-4">
                     <h3 class="font-medium text-gray-900 dark:text-white">الخطوة 1: اختر الدُفعة</h3>
