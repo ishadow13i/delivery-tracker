@@ -106,21 +106,33 @@ class PdfImport extends Page implements HasForms
         $this->processing = true;
         $this->processingMessage = 'جاري استخراج الأرقام...';
 
-        $php = PHP_BINARY ?: '/usr/local/bin/php';
+        $php = $this->findPhpBinary();
         $artisan = base_path('artisan');
+        $logFile = storage_path('app/pdf-imports/' . $jobId . '.log');
         $cmd = sprintf(
-            '%s %s pdf:extract %s > /dev/null 2>&1 &',
+            'nohup %s %s pdf:extract %s > %s 2>&1 &',
             escapeshellcmd($php),
             escapeshellarg($artisan),
-            escapeshellarg($jobId)
+            escapeshellarg($jobId),
+            escapeshellarg($logFile)
         );
 
         if (function_exists('exec')) {
             exec($cmd);
         } else {
-            // Fallback: process synchronously if exec is unavailable
             \Artisan::call('pdf:extract', ['jobId' => $jobId]);
         }
+    }
+
+    protected function findPhpBinary(): string
+    {
+        foreach (['/usr/local/bin/php', '/opt/alt/php82/usr/bin/php', '/opt/cpanel/ea-php82/root/usr/bin/php', '/usr/bin/php'] as $path) {
+            if (is_executable($path)) {
+                return $path;
+            }
+        }
+
+        return PHP_BINARY ?: 'php';
     }
 
     public function pollExtraction(): void
