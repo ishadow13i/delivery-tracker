@@ -33,6 +33,9 @@ class PdfImport extends Page implements HasForms
 
     public ?int $selectedCompanyId = null;
     public $pdfFile = null;
+    public ?string $uploadToken = null;
+    public ?string $uploadedFileName = null;
+    public ?int $uploadedFileSize = null;
     public string $batchName = '';
     public ?int $existingBatchId = null;
     public bool $useExistingBatch = false;
@@ -79,7 +82,8 @@ class PdfImport extends Page implements HasForms
     protected function resetImport(): void
     {
         $this->reset([
-            'pdfFile', 'batchName', 'existingBatchId', 'useExistingBatch',
+            'pdfFile', 'uploadToken', 'uploadedFileName', 'uploadedFileSize',
+            'batchName', 'existingBatchId', 'useExistingBatch',
             'extractedNumbers', 'newNumbers', 'updatableNumbers', 'duplicateNumbers',
             'showPreview', 'jobId', 'processing', 'processingMessage',
         ]);
@@ -87,19 +91,27 @@ class PdfImport extends Page implements HasForms
 
     public function extractFromPdf(): void
     {
-        if (!$this->pdfFile) {
+        // Prefer the plain-form upload token (set by JS after fetch upload)
+        if ($this->uploadToken) {
+            $sourcePath = storage_path('app/pdf-imports/' . $this->uploadToken . '.pdf');
+            if (!file_exists($sourcePath)) {
+                Notification::make()->title('لم يتم العثور على الملف المرفوع')->danger()->send();
+                return;
+            }
+            $jobId = $this->uploadToken;
+        } elseif ($this->pdfFile) {
+            // Fallback: Livewire wire:model upload path (legacy)
+            $jobId = (string) Str::uuid();
+            $pdfDir = storage_path('app/pdf-imports');
+            if (!is_dir($pdfDir)) {
+                @mkdir($pdfDir, 0755, true);
+            }
+            $pdfPath = $pdfDir . '/' . $jobId . '.pdf';
+            copy($this->pdfFile->getRealPath(), $pdfPath);
+        } else {
             Notification::make()->title('يرجى رفع ملف PDF')->danger()->send();
             return;
         }
-
-        // Save the uploaded PDF to a persistent location
-        $jobId = (string) Str::uuid();
-        $pdfDir = storage_path('app/pdf-imports');
-        if (!is_dir($pdfDir)) {
-            @mkdir($pdfDir, 0755, true);
-        }
-        $pdfPath = $pdfDir . '/' . $jobId . '.pdf';
-        copy($this->pdfFile->getRealPath(), $pdfPath);
 
         // Kick off background extraction (does not block the request)
         $this->jobId = $jobId;

@@ -102,30 +102,80 @@
                         ارفع ملف PDF من {{ $company->name }} الذي يحتوي على كل ملصقات الطلبات.
                     </p>
 
-                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+                    <div
+                        x-data="{
+                            uploading: false,
+                            progress: 0,
+                            error: null,
+                            fileName: null,
+                            fileSize: null,
+                            async handleFile(e) {
+                                const file = e.target.files[0];
+                                if (!file) return;
+                                this.error = null;
+                                this.uploading = true;
+                                this.progress = 0;
+                                this.fileName = file.name;
+                                this.fileSize = Math.round(file.size / 1024);
+                                const fd = new FormData();
+                                fd.append('pdf', file);
+                                fd.append('_token', '{{ csrf_token() }}');
+                                try {
+                                    const result = await new Promise((resolve, reject) => {
+                                        const xhr = new XMLHttpRequest();
+                                        xhr.open('POST', '{{ route('pdf.upload') }}');
+                                        xhr.upload.onprogress = (ev) => {
+                                            if (ev.lengthComputable) this.progress = Math.round((ev.loaded / ev.total) * 100);
+                                        };
+                                        xhr.onload = () => xhr.status >= 200 && xhr.status < 300
+                                            ? resolve(JSON.parse(xhr.responseText))
+                                            : reject(new Error('HTTP ' + xhr.status));
+                                        xhr.onerror = () => reject(new Error('network error'));
+                                        xhr.send(fd);
+                                    });
+                                    $wire.set('uploadToken', result.token);
+                                    $wire.set('uploadedFileName', result.name);
+                                    $wire.set('uploadedFileSize', result.size);
+                                    this.uploading = false;
+                                } catch (err) {
+                                    this.error = 'فشل الرفع: ' + err.message;
+                                    this.uploading = false;
+                                }
+                            }
+                        }"
+                        class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center"
+                    >
                         <input
                             type="file"
-                            wire:model="pdfFile"
                             accept="application/pdf"
+                            x-on:change="handleFile"
+                            x-bind:disabled="uploading"
                             class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                         >
 
-                        @if($pdfFile)
+                        <div x-show="uploading" class="mt-4">
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                <div class="bg-primary-600 h-3 rounded-full transition-all" x-bind:style="'width: ' + progress + '%'"></div>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2">جاري الرفع <span x-text="progress"></span>%</p>
+                        </div>
+
+                        <template x-if="error">
+                            <p class="mt-3 text-sm text-red-600" x-text="error"></p>
+                        </template>
+
+                        @if($uploadToken)
                             <p class="mt-3 text-sm text-green-600">
-                                ✓ {{ $pdfFile->getClientOriginalName() }} ({{ round($pdfFile->getSize() / 1024) }} كيلوبايت)
+                                ✓ {{ $uploadedFileName }} ({{ round(($uploadedFileSize ?? 0) / 1024) }} كيلوبايت) — تم الرفع
                             </p>
                         @endif
-                    </div>
-
-                    <div wire:loading wire:target="pdfFile" class="text-sm text-gray-500">
-                        جاري الرفع...
                     </div>
 
                     <x-filament::button
                         wire:click="extractFromPdf"
                         wire:loading.attr="disabled"
                         wire:target="extractFromPdf"
-                        :disabled="!$pdfFile"
+                        :disabled="!$uploadToken"
                         size="lg"
                         icon="heroicon-o-document-magnifying-glass"
                     >
